@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfect Pizza</title>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e8d6cb;
+            color: white;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: auto;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .header {
+            background-color: #a3b18a;
+            text-align: center;
+            padding: 40px;
+        }
+        .header h1 {
+            margin: 0.1em;
+            font-size: 2em;
+        }
+        .header h2 {
+            margin: 0;
+            font-size: 1.5em;
+        }
+        .cart {
+            background-color: #606c38;
+            color: #e8d6cb;
+            padding: 20px;
+            margin-top: 30px;
+        }
+        .cart h2 {
+            margin: 0 0 10px 0;
+        }
+        .cart ul {
+            list-style: none;
+            padding: 0;
+        }
+        .cart li {
+            margin: 5px 0;
+        }
+        .cart li span {
+            margin-right: 10px;
+        }
+        .message {
+            font-size: 1.2em;
+            color: red;
+            margin: 10px 0;
+        }
+        .checkout {
+            margin: 20px 0;
+        }
+        .pizza-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: space-around;
+        }
+        .pizza-card {
+            flex: 1 1 calc(33.333% - 40px); 
+            text-align: center;
+            color: black;
+            padding: 30px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            max-width: 100%;
+            height: 100%;
+        }
+        .pizza-card img {
+            width: 100%;
+            height: auto;
+            max-width: 200px;
+            margin: auto;
+        }
+        .pizza-card h2 {
+            margin: 10px 0;
+        }
+        .small-pizza {
+            background-color: #d4a373; 
+        }
+        .medium-pizza {
+            background-color: #c6ac8f; 
+        }
+        .large-pizza {
+            background-color: #c2c5aa; 
+        }
+        .footer {
+            background-color: #333d29;
+            color: aliceblue;
+            text-align: center;
+            padding: 10px;
+            margin-top: 20px;
+        }
+
+       
+        @media (max-width: 768px) {
+            .pizza-grid {
+                flex-direction: column; 
+            }
+            .pizza-card {
+                flex: 1 1 100%; 
+                margin-bottom: 20px; 
+            }
+        }
+    </style>
+</head>
+<body x-data="pizzaPamphlet()">
+
+    <div class="container">
+        <div class="header">
+            <h1>Perfect Pizza</h1>
+            <h2>Pizza orders</h2>
+        </div>
+
+        <div class="cart" x-show="cart.length > 0">
+            <h2>Shopping Cart</h2>
+            <ul>
+                <li>Small: <span x-text="totals.small"></span> <button @click="addPizza('small', 31.99)">+</button> <button @click="removePizza('small')">-</button></li>
+                <li>Medium: <span x-text="totals.medium"></span> <button @click="addPizza('medium', 58.99)">+</button> <button @click="removePizza('medium')">-</button></li>
+                <li>Large: <span x-text="totals.large"></span> <button @click="addPizza('large', 87.99)">+</button> <button @click="removePizza('large')">-</button></li>
+                <li>Total cost: R<span x-text="totalCost.toFixed(2)"></span></li>
+            </ul>
+            <div class="checkout">
+                <button @click="showPayment = true">Checkout</button>
+            </div>
+        </div>
+
+        <div class="payment" x-show="showPayment" style="margin-top: 20px;">
+            <label>Payment amount:</label>
+            <input type="number" x-model="paymentAmount">
+            <button @click="processPayment">Pay</button>
+            <div class="message" x-show="message" x-text="message"></div>
+        </div>
+
+        <div class="pizza-grid">
+            <div class="pizza-card small-pizza">
+                <img src="Mini-Pizza-Chicken-Tika.jpg"  alt="Small Pizza">
+                <h2>Small Pizza</h2>
+                <p>R31.99</p>
+                <p>Small pizza with 3 toppings. 1 meat topping. 3 or less other toppings.</p>
+                <button @click="addPizza('small', 31.99)">Order</button>
+            </div>
+
+            <div class="pizza-card medium-pizza">
+                <img src="pexels-renestrgar-13814644.jpg" alt="Medium Pizza">
+                <h2>Medium Pizza</h2>
+                <p>R58.99</p>
+                <p>Medium Margherita pizza with 3 toppings max. 2 or less meat toppings. 3 or less other toppings.</p>
+                <button @click="addPizza('medium', 58.99)">Order</button>
+            </div>
+
+            <div class="pizza-card large-pizza">
+                <img src="72-hour-pizza4.jpg" alt="Large Pizza">
+                <h2>Large Pizza</h2>
+                <p> R87.99</p>
+                <p>Large Margherita pizza with 3 toppings max. 2 or less meat toppings. 3 or less other toppings.</p>
+                <button @click="addPizza('large', 87.99)">Order</button>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Contact us at: (021)-541-1000 | twitter /fb /insta @perfectpizza</p>
+            <p>Pizza Plaza, Dough Road, Base Town</p>
+        </div>
+    </div>
+
+    <script>
+        function pizzaPamphlet() {
+            return {
+                cart: [],
+                totals: {
+                    small: 0,
+                    medium: 0,
+                    large: 0
+                },
+                totalCost: 0,
+                paymentAmount: 0,
+                showPayment: false,
+                message: '',
+                addPizza(size, price) {
+                    this.cart.push({ size, price });
+                    this.updateTotals();
+                },
+                removePizza(size) {
+                    const index = this.cart.findIndex(pizza => pizza.size === size);
+                    if (index !== -1) {
+                        this.cart.splice(index, 1);
+                        this.updateTotals();
+                    }
+                },
+                updateTotals() {
+                    this.totals.small = this.cart.filter(item => item.size === 'small').length;
+                    this.totals.medium = this.cart.filter(item => item.size === 'medium').length;
+                    this.totals.large = this.cart.filter(item => item.size === 'large').length;
+                    this.totalCost = this.cart.reduce((total, item) => total + item.price, 0);
+                },
+                processPayment() {
+                    if (this.paymentAmount >= this.totalCost) {
+                        this.message = "Enjoy your pizzas!";
+                        this.cart = [];
+                        this.updateTotals();
+                        this.showPayment = false;
+                    } else {
+                        this.message = "Sorry - that is not enough money!";
+                    }
+                    setTimeout(() => this.message = '', 5000);
+                }
+            };
+        }
+    </script>
+</body>
+</html>
